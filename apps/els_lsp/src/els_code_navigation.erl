@@ -61,10 +61,31 @@ goto_definition( Uri
     Result ->
       Result
   end;
+goto_definition( Uri
+               , #{ kind := Kind, id := Module }
+               ) when Kind =:= atom ->
+  %% in a test suite, jump to definition of the test case:
+
+  case find(Uri, include_lib, "common_test/include/ct.hrl") of
+    {error, _Error} ->
+      case els_utils:find_module(Module) of
+        {ok, ModuleUri}      -> find(ModuleUri, module, Module);
+        {error, ModuleError} -> {error, ModuleError}
+      end;
+    _Result ->
+      case find(Uri, function, {Module, 1}) of
+        {error, _Error} ->
+          case els_utils:find_module(Module) of
+            {ok, FunctionUri}      -> find(FunctionUri, module, Module);
+            {error, FunctionError} -> {error, FunctionError}
+          end;
+        FunctionResult ->
+          FunctionResult
+      end
+  end;
 goto_definition( _Uri
                , #{ kind := Kind, id := Module }
-               ) when Kind =:= atom;
-                      Kind =:= behaviour;
+               ) when Kind =:= behaviour;
                       Kind =:= module ->
   case els_utils:find_module(Module) of
     {ok, Uri}      -> find(Uri, module, Module);

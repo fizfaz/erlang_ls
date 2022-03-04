@@ -16,6 +16,7 @@
 -export([ application_local/1
         , application_remote/1
         , atom/1
+        , ct_testcase/1
         , behaviour/1
         , definition_after_closing/1
         , duplicate_definition/1
@@ -137,6 +138,15 @@ atom(Config) ->
   ?assertEqual( els_protocol:range(#{from => {1, 9}, to => {1, 36}})
               , Range3),
   ok.
+
+-spec ct_testcase(config()) -> ok.
+ct_testcase(Config) ->
+  Uri = ?config(sample_SUITE_uri, Config),
+  Def = els_client:definition(Uri, 35, 5),
+  #{result := #{range := Range, uri := DefUri}} = Def,
+  ?assertEqual(?config(sample_SUITE_uri, Config), DefUri),
+  ?assertEqual( els_protocol:range(#{from => {58, 1}, to => {58, 4}})
+              , Range).
 
 -spec behaviour(config()) -> ok.
 behaviour(Config) ->
@@ -526,3 +536,4 @@ parse_incomplete(Config) ->
   ?assertMatch( #{result := #{range := Range, uri := Uri}}
               , els_client:definition(Uri, 19, 3)),
   ok.
+
